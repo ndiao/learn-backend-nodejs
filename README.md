@@ -65,4 +65,11 @@ La couche de sécurité comprend :
 * Intergiciel (middleware) d’autorisation : vérifier les rôles de l’utilisateur avec l’enregistrement dans la base de données
 Si ces intergiciels lèvent une erreur, un message sera envoyé en tant que réponse HTTP.
 
-Les contrôleurs interagissent avec mySQL Database via Sequelize et envoient une réponse HTTP (jeton, informations utilisateur, données basées sur les rôles...) au client.
+Les contrôleurs interagissent avec MySQL Database via Sequelize et envoient une réponse HTTP (jeton, informations utilisateur, données basées sur les rôles...) au client.
+
+## Technologies
+* Express 4.17.1
+* Bcryptjs 2.4.3
+* Jsonwebtoken 8.5.1
+* Sequelize 5.21.3
+* MySQL
