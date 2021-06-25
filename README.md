@@ -41,3 +41,13 @@ Nous allons créer une application NodeJS Express dans laquelle:
 | GET           | /api/test/user               | Le contenu des utilisateurs avec le role USER       |
 | GET           | /api/test/apprenant          | Le contenu des utilisateurs avec le role APPRENANT  |
 | GET           | /api/test/admin              | Le contenu des utilisateurs avec le role ADMIN      |
+
+## Processus d'inscription et de login avec JWT
+
+![Flow Signup et Login](node-js-jwt-authentication-mysql-flow.png)
+
+Un jeton JWT légal doit être ajouté à l'entete HTTP x-access-token si le client accède à des ressources protégées.
+
+Vous devrez implémenter le jeton d’actualisation :
+
+![Flow Signup et Login Rafraiche Token](jwt-refresh-token-node-js-example-flow.png)
