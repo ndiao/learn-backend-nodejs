@@ -73,3 +73,21 @@ Les contrôleurs interagissent avec MySQL Database via Sequelize et envoient une
 * Jsonwebtoken 8.5.1
 * Sequelize 5.21.3
 * MySQL
+
+## Structure du projet
+- config
+    + db.config.json: configuration de la base de données MySQL et Sequelize
+    + auth.config.js: congiguration clé auth
+- routes
+    + auth.routes.js: POST signup & signin
+    + user.routes.js: GET public & protected resources
+- middlewares
+    + verifySignUp.js: vérifier doublons sur Username ou Email
+    + authJwt.js: vérifier Token, vérifier les roles des utilisateurs dans la base de données
+- controllers
+    + auth.controller.js: gérer les action d'inscription et de login
+    + user.controller.js: returne les contenus publics et protégés
+- models
+    + user.model.js
+    + role.model.js
+- server.js: importation et initialisation des modules necessaires et les routes, ecoute pour les connexions.
