@@ -33,7 +33,11 @@ Nous allons créer une application NodeJS Express dans laquelle:
 - Les utilisateurs accèdent à leur espace en fonction des rôles (USER, APPRENANT, PROFESSEUR et ADMIN)
 
 ## les APIs fournies par l'application
-| Syntax      | Description | Test Text     |
-| :---        |    :----:   |          ---: |
-| Header      | Title       | Here's this   |
-| Paragraph   | Text        | And more      |
+| Methodes      | Urls                    | Action                                              |
+| :---          | :----:                  |          ---:                                       |
+| POST          | /api/auth/signup        | Créer un nouvel compte                              |
+| POST          | /api/auth/signin        | Se connecter avec username et password              |
+| GET           | /api/test/all           | Le contenu du grand public                          |
+| GET           | /api/test/user          | Le contenu des utilisateurs avec le role USER       |
+| GET           | /api/test/apprenant     | Le contenu des utilisateurs avec le role APPRENANT  |
+| GET           | /api/test/admin         | Le contenu des utilisateurs avec le role ADMIN  |
