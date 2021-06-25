@@ -51,3 +51,18 @@ Un jeton JWT légal doit être ajouté à l'entete HTTP x-access-token si le cli
 Vous devrez implémenter le jeton d’actualisation :
 
 ![Flow Signup et Login Rafraiche Token](jwt-refresh-token-node-js-example-flow.png)
+
+## Architecture NodeJS Express avec Authentification et Autorisation
+Vous pouvez avoir un aperçu de notre application Node.js Express avec le diagramme ci-dessous:
+
+![Architecture App](node-js-jwt-authentication-mysql-architecture.png)
+
+Via les routes Express, la requête HTTP qui correspond à une route sera vérifiée par l’intergiciel (middleware) CORS avant d’arriver à la couche de sécurité.
+
+La couche de sécurité comprend :
+
+* Middleware d’authentification JWT : vérifier l’inscription, vérifier le jeton
+* Intergiciel (middleware) d’autorisation : vérifier les rôles de l’utilisateur avec l’enregistrement dans la base de données
+Si ces intergiciels lèvent une erreur, un message sera envoyé en tant que réponse HTTP.
+
+Les contrôleurs interagissent avec mySQL Database via Sequelize et envoient une réponse HTTP (jeton, informations utilisateur, données basées sur les rôles...) au client.
