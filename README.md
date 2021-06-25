@@ -91,3 +91,13 @@ Les contrôleurs interagissent avec MySQL Database via Sequelize et envoient une
     + user.model.js
     + role.model.js
 - server.js: importation et initialisation des modules necessaires et les routes, ecoute pour les connexions.
+
+## Lesson 1: Préparation du projet
+
+1. Création du projet
+```
+$ mkdir backend
+$ cd backend
+$ npm init -y
+$ npm install express@4.17.1 sequelize@6.6.2 mysql2@2.2.5 body-parser@1.19.0 cors@2.8.5 jsonwebtoken@8.5.1 bcryptjs@2.4.3 --save
+```
