@@ -101,3 +101,46 @@ $ cd backend
 $ npm init -y
 $ npm install express@4.17.1 sequelize@6.6.2 mysql2@2.2.5 body-parser@1.19.0 cors@2.8.5 jsonwebtoken@8.5.1 bcryptjs@2.4.3 --save
 ```
+2. Configurer le serveur web Express
+```
+$ mkdir app
+$ cd app
+$ vi server.js
+```
+Code source de server.js
+```java
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+var corsOptions = {
+  origin: "http://localhost:4200"
+};
+
+app.use(cors(corsOptions));
+
+// Parser les requetes HTTP du content-type - application/json
+app.use(express.json());
+
+// Parser les requetes HTTP du content-type - application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+// simple route
+app.get("/", (req, res) => {
+  res.json({ message: "Bienvenue sur NodeJS" });
+});
+
+// Mettre le port d'écoute 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Serveur demarre sur le port: ${PORT}.`);
+});
+```
+Quelques explications sur ce que nous avons fait:
+- import de express et cors
+    * Express pour créer l'API REST
+    * cors fourni un middleware express pour activer Cross-origin resource sharing (CORS)
+- Création une application express (app) puis le middlewate CORS en utilisant la méthode app.use(). L'origine de la requête est http://localhost:4200.
+- Définir une route GET pour tester
+- Ecouter les requêtes sur le port 3000
