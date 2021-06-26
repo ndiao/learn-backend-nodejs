@@ -104,7 +104,6 @@ $ npm install express@4.17.1 sequelize@6.6.2 mysql2@2.2.5 body-parser@1.19.0 cor
 2. Configurer le serveur web Express
 ```
 $ mkdir app
-$ cd app
 $ vi server.js
 ```
 Code source de server.js
@@ -316,7 +315,7 @@ const Role = db.role;
 // En production db.sequelize.sync();
 // Supprimer les tables et recharge les données
 db.sequelize.sync({force: true}).then(() => {
-  console.log('Drop and Resync Database with { force: true }');
+  console.log('Supprimer et Resync BD avec { force: true }');
   initial();
 });
 
@@ -324,10 +323,6 @@ db.sequelize.sync({force: true}).then(() => {
 app.get("/", (req, res) => {
   res.json({ message: "Bienvenue sur NodeJS" });
 });
-
-// routes
-require('./app/routes/auth.routes')(app);
-require('./app/routes/user.routes')(app);
 
 // Mettre le port d'écoute 
 const PORT = process.env.PORT || 3000;
@@ -357,3 +352,17 @@ function initial() {
   });
 }
 ```
+La fonction initial() permet d'avoir 4 enregistrements dans la table roles. En mode dev, tu as parfois besoin de supprimer les tables existantes et resynchroniser la BD. Pour cela, utiliser ```sync({force: true})```
+
+3. Création du schema de BD
+```
+$ mysql -u root -p
+mysql> create database auth_back
+```
+4. Demarrer le serveur 
+```
+$ node server.js
+```
+Resulats:
+- Génération des tables users et roles
+- Insertion de 4 instances dans la table role
