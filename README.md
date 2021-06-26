@@ -92,7 +92,7 @@ Les contrôleurs interagissent avec MySQL Database via Sequelize et envoient une
     + role.model.js
 - server.js: importation et initialisation des modules necessaires et les routes, ecoute pour les connexions.
 
-## Lesson 1: Préparation du projet
+## Leçon 1: Préparation du projet
 ### Création, installation des librairies et démarrage du serveur
 1. Création du projet
 ```
