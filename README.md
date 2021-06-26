@@ -285,8 +285,9 @@ module.exports = db;
 ```
 
 L'association entre User et Role est plusieur à plusieur (Many To Many).
-- Un User peut jouer plusieurs: ```db.user.belongsToMany(db.role, ...)```
-- Un Role peut être jouer par plusieurs User: ```db.role.belongsToMany(db.user, ...)```
+- Un User peut jouer plusieurs: ```db.user.belongsToMany(db.role, ...)```.
+- Un Role peut être jouer par plusieurs User: ```db.role.belongsToMany(db.user, ...)```.
+
 Avec through, foreignKey et otherKey, nous générons une table d'association user_roles.
 
 2. Editer server.js
