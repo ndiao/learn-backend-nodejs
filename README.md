@@ -367,7 +367,7 @@ Resulats:
 - Génération des tables users et roles
 - Insertion de 4 instances dans la table role
 
-## Leçon 1: Implementation du Middleware
+## Leçon 2: Implementation du Middleware
 ### Configuration de clé d'authentification
 Les fonctions jsonwebtoken telles que ```verify()``` ou ```sign()``` utilisent un algorithme qui a besoin d’une clé secrète (un chaine de caracteres) pour encoder et décoder le jeton (token).
 
