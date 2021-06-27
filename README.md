@@ -366,3 +366,202 @@ $ node server.js
 Resulats:
 - Génération des tables users et roles
 - Insertion de 4 instances dans la table role
+
+## Leçon 1: Implementation du Middleware
+### Configuration de clé d'authentification
+Les fonctions jsonwebtoken telles que ```verify()``` ou ```sign()``` utilisent un algorithme qui a besoin d’une clé secrète (un chaine de caracteres) pour encoder et décoder le jeton (token).
+
+Dans le dossier config, créer le fichier auth.config.js
+```java
+module.exports = {
+    secret: "azerty-1234567"
+};
+```
+### Créer les fonctions Middleware
+Pour vérifier les inscriptions avant validation, nous aurons besoin de 2 fonctions:
+- verifier s'il ya doublon ou pas sur le username ou l'email
+- vérifier si le rôle existe ou pas
+1. Dans le dossier middleware, créer le fichier verifySignUp.js
+```java
+const db = require("../models");
+const ROLES = db.ROLES;
+const User = db.user;
+
+checkDuplicateUsernameOrEmail = (req, res, next) => {
+  // Username
+  User.findOne({
+    where: {
+      username: req.body.username
+    }
+  }).then(user => {
+    if (user) {
+      res.status(400).send({
+        message: "Echec! Username est déja pris!"
+      });
+      return;
+    }
+
+    // Email
+    User.findOne({
+      where: {
+        email: req.body.email
+      }
+    }).then(user => {
+      if (user) {
+        res.status(400).send({
+          message: "Echec! Email is est deja prise!"
+        });
+        return;
+      }
+
+      next();
+    });
+  });
+};
+
+checkRolesExisted = (req, res, next) => {
+  if (req.body.roles) {
+    for (let i = 0; i < req.body.roles.length; i++) {
+      if (!ROLES.includes(req.body.roles[i])) {
+        res.status(400).send({
+          message: "Echec! Role n'existe pas = " + req.body.roles[i]
+        });
+        return;
+      }
+    }
+  }
+  
+  next();
+};
+
+const verifySignUp = {
+  checkDuplicateUsernameOrEmail: checkDuplicateUsernameOrEmail,
+  checkRolesExisted: checkRolesExisted
+};
+
+module.exports = verifySignUp;
+```
+Pour traiter l'authentification et l'authorisation, nous aurons ces fonctions:
+- vérifiez si le jeton est fourni est légal ou non. Nous obtenons le jeton à travers <b>x-access-token</b> des en-têtes HTTP, puis utilisons la fonction verify() de jsonwebtoken.
+- vérifiez si les rôles de l’utilisateur contiennent le rôle requis ou non.
+2. Dans le dossier middleware, créer le fichier authJwt.js
+```java
+const jwt = require("jsonwebtoken");
+const config = require("../config/auth.config.js");
+const db = require("../models");
+const User = db.user;
+
+verifyToken = (req, res, next) => {
+  let token = req.headers["x-access-token"];
+
+  if (!token) {
+    return res.status(403).send({
+      message: "No token provided!"
+    });
+  }
+
+  jwt.verify(token, config.secret, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({
+        message: "Unauthorized!"
+      });
+    }
+    req.userId = decoded.id;
+    next();
+  });
+};
+
+isAdmin = (req, res, next) => {
+  User.findByPk(req.userId).then(user => {
+    user.getRoles().then(roles => {
+      for (let i = 0; i < roles.length; i++) {
+        if (roles[i].name === "ADMIN") {
+          next();
+          return;
+        }
+      }
+
+      res.status(403).send({
+        message: "Role admin requis!"
+      });
+      return;
+    });
+  });
+};
+
+isProfessor = (req, res, next) => {
+  User.findByPk(req.userId).then(user => {
+    user.getRoles().then(roles => {
+      for (let i = 0; i < roles.length; i++) {
+        if (roles[i].name === "PROFESSEUR") {
+          next();
+          return;
+        }
+      }
+
+      res.status(403).send({
+        message: "Role professeur requis!"
+      });
+    });
+  });
+};
+
+isProfessorOrAdmin = (req, res, next) => {
+  User.findByPk(req.userId).then(user => {
+    user.getRoles().then(roles => {
+      for (let i = 0; i < roles.length; i++) {
+        if (roles[i].name === "PROFESSEUR") {
+          next();
+          return;
+        }
+
+        if (roles[i].name === "ADMIN") {
+          next();
+          return;
+        }
+      }
+
+      res.status(403).send({
+        message: "Role admin ou professeur requis!"
+      });
+    });
+  });
+};
+
+isStudent = (req, res, next) => {
+    User.findByPk(req.userId).then(user => {
+      user.getRoles().then(roles => {
+        for (let i = 0; i < roles.length; i++) {
+          if (roles[i].name === "ETUDIANT") {
+            next();
+            return;
+          }
+        }
+  
+        res.status(403).send({
+          message: "Role etudiant requis!"
+        });
+      });
+    });
+  };
+
+const authJwt = {
+  verifyToken: verifyToken,
+  isAdmin: isAdmin,
+  isProfessor: isProfessor,
+  isProfessorOrAdmin: isProfessorOrAdmin,
+  isStudent: isStudent
+};
+module.exports = authJwt;
+```
+3. Dans le dossier middleware, créer le fichier index.js
+
+```java
+const authJwt = require("./authJwt");
+const verifySignUp = require("./verifySignUp");
+
+module.exports = {
+  authJwt,
+  verifySignUp
+};
+```
