@@ -32,8 +32,8 @@ app.get("/", (req, res) => {
 });
 
 // routes
-/*require('./app/routes/auth.routes')(app);
-require('./app/routes/user.routes')(app);*/
+require('./app/routes/auth.routes')(app);
+require('./app/routes/user.routes')(app);
 
 // Mettre le port d'écoute 
 const PORT = process.env.PORT || 3000;
@@ -54,7 +54,7 @@ function initial() {
  
   Role.create({
     id: 3,
-    name: "PROFESSEUR"
+    name: "FORMATEUR"
   });
 
   Role.create({

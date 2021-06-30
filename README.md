@@ -565,3 +565,230 @@ module.exports = {
   verifySignUp
 };
 ```
+
+## Leçon 3: Implementation des controlleurs
+### Controlleurs pour l'authentification
+Nous avons 2 princiaples fonctions à implémenter pour l'authentification:
+- ```signup```: crée un nouvel utilisateur dans la BD avec le rôle USER s'il n'est pas spécifié.
+- ```signin```:
+    * Trouver username de la requête de la base de données s'il existe
+    * Comparer le mot de passe saisi avec celui stocké dans base de données un utilisant <b>bcrypt</b> si c'est correct
+    * Générer un token en utilisant <b>jsonwebtoken</b>
+    * Retouner l'objet user et le token
+
+1. Dans le dossier controllers, créer le fichier auth.controller.js
+```java
+const db = require("../models");
+const config = require("../config/auth.config");
+const User = db.user;
+const Role = db.role;
+
+const Op = db.Sequelize.Op;
+
+var jwt = require("jsonwebtoken");
+var bcrypt = require("bcryptjs");
+
+exports.signup = (req, res) => {
+  // Sauvegarder User dans la BD
+  User.create({
+    username: req.body.username,
+    email: req.body.email,
+    password: bcrypt.hashSync(req.body.password, 8)
+  })
+    .then(user => {
+        // Si le.s role.s est/sont renseigné.s
+      if (req.body.roles) {
+        Role.findAll({
+          where: {
+            name: {
+              [Op.or]: req.body.roles
+            }
+          }
+        }).then(roles => {
+          user.setRoles(roles).then(() => {
+            res.send({ message: "User créé avec succes !" });
+          });
+        });
+      } else {
+        // Sinon lui attribuer le role USER (code = 1)
+        user.setRoles([1]).then(() => {
+          res.send({ message: "User créé avec succes !" });
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({ message: err.message });
+    });
+};
+
+exports.signin = (req, res) => {
+  User.findOne({
+    where: {
+      username: req.body.username
+    }
+  })
+    .then(user => {
+      if (!user) {
+        return res.status(404).send({ message: "User introuvable." });
+      }
+
+      var passwordIsValid = bcrypt.compareSync(
+        req.body.password,
+        user.password
+      );
+
+      if (!passwordIsValid) {
+        return res.status(401).send({
+          accessToken: null,
+          message: "Mot de passe invalide!"
+        });
+      }
+
+      var token = jwt.sign({ id: user.id }, config.secret, {
+        expiresIn: 86400 // 24 hours
+      });
+
+      var authorities = [];
+      user.getRoles().then(roles => {
+        for (let i = 0; i < roles.length; i++) {
+          authorities.push("ROLE_" + roles[i].name.toUpperCase());
+        }
+        res.status(200).send({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          roles: authorities,
+          accessToken: token
+        });
+      });
+    })
+    .catch(err => {
+      res.status(500).send({ message: err.message });
+    });
+};
+```
+### Controlleurs pour tester l'autorisation
+Nous avons 4 fonctions:
+- ```/api/test/all``` pour les acces public
+- ```/api/test/user``` pour les utilisateurs qui ont le role USER
+- ```/api/test/student``` pour les utilisateurs qui ont le role APPRENANT
+- ```/api/test/professor``` pour les utilisateurs qui ont le role FORMATEUR
+- ```/api/test/admin``` pour les utilisateurs qui ont le role ADMIN
+
+controllers/user.controller.js
+
+```java
+exports.allAccess = (req, res) => {
+    res.status(200).send("Public Content.");
+};
+  
+exports.userBoard = (req, res) => {
+    
+    res.status(200).send("Espace des utilisateurs.");
+};
+  
+exports.adminBoard = (req, res) => {
+    res.status(200).send("Espace des administrateurs.");
+};
+
+exports.professorBoard = (req, res) => {
+    res.status(200).send("Espace des professeurs.");
+};
+
+exports.studentBoard = (req, res) => {
+    res.status(200).send("Espace des etudiants.");
+};
+```
+Maintenant la question c'est, comment on peut combiner les fonctions middleware et controlleur?
+### Definition des routes
+Nous allons séparer les routes en 2 parties pour l'authentification et l'autorisation.
+#### Authentication
+* POST ```/api/auth/signup```
+* POST ```/api/auth/signin```
+
+- routes/auth.routes.js
+```java
+const { verifySignUp } = require("../middleware");
+const controller = require("../controllers/auth.controller");
+
+module.exports = function(app) {
+  app.use(function(req, res, next) {
+    res.header(
+      "Access-Control-Allow-Headers",
+      "x-access-token, Origin, Content-Type, Accept"
+    );
+    next();
+  });
+
+  app.post(
+    "/api/auth/signup",
+    [
+      verifySignUp.checkDuplicateUsernameOrEmail,
+      verifySignUp.checkRolesExisted
+    ],
+    controller.signup
+  );
+
+  app.post("/api/auth/signin", controller.signin);
+};
+```
+
+#### Authorization
+* GET ```/api/test/all```
+* GET ```/api/test/user```
+* GET ```/api/test/student```
+* GET ```/api/test/professor```
+* GET ```/api/test/admin```
+
+- routes/user.routes.js
+
+```java
+const { authJwt } = require("../middleware");
+const controller = require("../controllers/user.controller");
+
+module.exports = function (app) {
+  
+  app.use(function(req, res, next) {
+    res.header(
+      "Access-Control-Allow-Headers",
+      "x-access-token, Origin, Content-Type, Accept"
+    );
+    next();
+  });
+
+  app.get("/api/test/all", controller.allAccess);
+
+  app.get(
+    "/api/test/user",
+    [authJwt.verifyToken],
+    controller.userBoard
+  );
+
+  app.get(
+    "/api/test/professor",
+    [authJwt.verifyToken, authJwt.isProfessor],
+    controller.professorBoard
+  );
+
+  app.get(
+    "/api/test/admin",
+    [authJwt.verifyToken, authJwt.isAdmin],
+    controller.adminBoard
+  );
+
+  app.get(
+    "/api/test/student",
+    [authJwt.verifyToken, authJwt.isStudent],
+    controller.studentBoard
+  );
+};
+```
+N'oublier pas d'ajouter les routes dans server.js
+```java
+...
+// routes
+require('./app/routes/auth.routes')(app);
+require('./app/routes/user.routes')(app);
+...
+```
+### Tester l'appli
